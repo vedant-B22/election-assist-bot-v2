@@ -76,7 +76,7 @@ def chat():
         }
 
         payload = {
-            "system_instruction": {
+            "systemInstruction": {
                 "parts": [{"text": SYSTEM_PROMPT}]
             },
             "contents": [
@@ -89,6 +89,16 @@ def chat():
         }
 
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
+        
+        # Fallback logic if the model is not found or rate limited
+        if resp.status_code in (404, 429):
+            print(f"Model gemini-2.0-flash-001 failed with {resp.status_code}, trying fallback to gemini-1.5-flash-002")
+            fallback_url = f"https://{LOCATION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/google/models/gemini-1.5-flash-002:generateContent"
+            resp = requests.post(fallback_url, headers=headers, json=payload, timeout=30)
+            
+        if not resp.ok:
+            print(f"Vertex AI API Error: {resp.status_code} - {resp.text}")
+            
         resp.raise_for_status()
         result = resp.json()
         reply = result["candidates"][0]["content"]["parts"][0]["text"]
@@ -96,7 +106,7 @@ def chat():
 
     except Exception as e:
         import traceback
-        print(traceback.format_exc())
+        print(traceback.format_exc(), flush=True)
         return jsonify({"error": str(e)}), 500
 
 @app.route("/health")
