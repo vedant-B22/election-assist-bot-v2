@@ -1,6 +1,8 @@
 import os
 import requests
 from flask import Flask, request, jsonify, render_template
+from functools import lru_cache
+import time
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -35,7 +37,12 @@ QUICK_TOPICS = [
     "How is a winner declared?"
 ]
 
+_token_cache = {"token": None, "expires_at": 0}
+
 def get_access_token():
+    now = time.time()
+    if _token_cache["token"] and now < _token_cache["expires_at"] - 60:
+        return _token_cache["token"]
     try:
         resp = requests.get(
             "http://metadata.google.internal/computeMetadata/v1/instance/service-accounts/default/token",
@@ -43,10 +50,34 @@ def get_access_token():
             timeout=5
         )
         resp.raise_for_status()
-        return resp.json().get("access_token")
+        data = resp.json()
+        _token_cache["token"] = data.get("access_token")
+        _token_cache["expires_at"] = now + data.get("expires_in", 3600)
+        return _token_cache["token"]
     except Exception as e:
         print(f"Token error: {e}")
         return None
+
+MODELS = [
+    "gemini-2.0-flash",
+    "gemini-1.5-flash",
+]
+
+def call_vertex(token, payload):
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json"
+    }
+    for model in MODELS:
+        url = f"https://{LOCATION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/google/models/{model}:generateContent"
+        try:
+            resp = requests.post(url, headers=headers, json=payload, timeout=30)
+            if resp.status_code == 200:
+                return resp
+            print(f"Model {model} failed: {resp.status_code}")
+        except Exception as e:
+            print(f"Model {model} exception: {e}")
+    return None
 
 @app.route("/")
 def index():
@@ -54,7 +85,7 @@ def index():
 
 @app.route("/chat", methods=["POST"])
 def chat():
-    data = request.get_json()
+    data = request.get_json(silent=True)
     if not data or "message" not in data:
         return jsonify({"error": "No message provided"}), 400
     user_message = data["message"].strip()
@@ -63,46 +94,23 @@ def chat():
     if len(user_message) > 500:
         return jsonify({"error": "Message too long"}), 400
 
+    token = get_access_token()
+    if not token:
+        return jsonify({"error": "Authentication failed"}), 500
+
+    payload = {
+        "systemInstruction": {"parts": [{"text": SYSTEM_PROMPT}]},
+        "contents": [{"role": "user", "parts": [{"text": user_message}]}],
+        "generationConfig": {"maxOutputTokens": 1024, "temperature": 0.7}
+    }
+
     try:
-        token = get_access_token()
-        if not token:
-            return jsonify({"error": "Could not get access token"}), 500
-
-        url = f"https://{LOCATION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/google/models/gemini-2.0-flash:generateContent"
-
-        headers = {
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json"
-        }
-
-        payload = {
-            "systemInstruction": {
-                "parts": [{"text": SYSTEM_PROMPT}]
-            },
-            "contents": [
-                {"role": "user", "parts": [{"text": user_message}]}
-            ],
-            "generationConfig": {
-                "maxOutputTokens": 1024,
-                "temperature": 0.7
-            }
-        }
-
-        resp = requests.post(url, headers=headers, json=payload, timeout=30)
-
-        if resp.status_code in (404, 429):
-            print(f"Primary model failed with {resp.status_code}, trying fallback gemini-1.5-flash")
-            fallback_url = f"https://{LOCATION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/google/models/gemini-1.5-flash:generateContent"
-            resp = requests.post(fallback_url, headers=headers, json=payload, timeout=30)
-
-        if not resp.ok:
-            print(f"Vertex AI API Error: {resp.status_code} - {resp.text}")
-
-        resp.raise_for_status()
+        resp = call_vertex(token, payload)
+        if not resp:
+            return jsonify({"error": "All models failed"}), 500
         result = resp.json()
         reply = result["candidates"][0]["content"]["parts"][0]["text"]
         return jsonify({"reply": reply})
-
     except Exception as e:
         import traceback
         print(traceback.format_exc(), flush=True)
@@ -110,7 +118,11 @@ def chat():
 
 @app.route("/health")
 def health():
-    return jsonify({"status": "ok", "service": "ElectionBot-v2"}), 200
+    return jsonify({"status": "ok", "service": "ElectionBot-v2", "project": PROJECT_ID}), 200
+
+@app.route("/api/topics")
+def topics():
+    return jsonify({"topics": QUICK_TOPICS}), 200
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 8080))
