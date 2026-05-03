@@ -1,392 +1,700 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ElectionBot - India Election Assistant</title>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ElectionBot — Learn How Elections Work</title>
     <style>
-        :root {
-            --bg-gradient-start: #000d1a;
-            --bg-gradient-end: #0a0a2e;
-            --accent-color: #f97316;
-            --accent-hover: #ea580c;
-            --text-light: #f3f4f6;
-            --text-muted: #9ca3af;
-            --card-bg: rgba(15, 23, 42, 0.7);
-            --border-color: rgba(255, 255, 255, 0.1);
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
         }
 
         body {
-            margin: 0;
-            padding: 0;
-            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
-            color: var(--text-light);
+            font-family: 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #000000, #000d1a, #0a0a2e);
             min-height: 100vh;
+            color: #f0f0f0;
             display: flex;
             flex-direction: column;
+            align-items: center;
+            padding: 16px
         }
 
         header {
-            padding: 1.5rem;
             text-align: center;
-            border-bottom: 1px solid var(--border-color);
-            background: rgba(0, 0, 0, 0.2);
-            backdrop-filter: blur(10px);
-        }
-
-        h1 {
-            margin: 0;
-            font-size: 1.8rem;
-            color: var(--accent-color);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-        }
-
-        .container {
-            max-width: 1000px;
-            margin: 0 auto;
-            padding: 1rem;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
+            padding: 20px 16px 8px;
             width: 100%;
-            box-sizing: border-box;
+            max-width: 820px
         }
 
-        /* Tabs */
+        header h1 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            letter-spacing: 1px;
+            color: #fff
+        }
+
+        header h1 span {
+            color: #f97316
+        }
+
+        header p {
+            color: #8888aa;
+            font-size: .95rem;
+            margin-top: 6px
+        }
+
         .tabs {
             display: flex;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
-            overflow-x: auto;
-            padding-bottom: 0.5rem;
+            gap: 8px;
+            margin: 16px 0 8px;
+            width: 100%;
+            max-width: 820px;
+            flex-wrap: wrap
         }
 
         .tab-btn {
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
-            color: var(--text-light);
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: 600;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .tab-btn:hover {
-            background: rgba(255, 255, 255, 0.1);
-        }
-
-        .tab-btn.active {
-            background: var(--accent-color);
-            border-color: var(--accent-color);
-            color: white;
-        }
-
-        .tab-content {
-            display: none;
-            background: var(--card-bg);
-            border: 1px solid var(--border-color);
+            flex: 1;
+            min-width: 120px;
+            padding: 10px;
+            border: none;
             border-radius: 12px;
-            padding: 1.5rem;
-            flex: 1;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            background: rgba(255, 255, 255, 0.06);
+            color: #bbb;
+            font-size: .88rem;
+            cursor: pointer;
+            transition: all .2s;
+            border: 1px solid rgba(255, 255, 255, 0.08)
         }
 
-        .tab-content.active {
-            display: flex;
-            flex-direction: column;
+        .tab-btn.active,
+        .tab-btn:hover {
+            background: #f97316;
+            color: #fff;
+            font-weight: 700;
+            border-color: #f97316
         }
 
-        /* Chat Specific */
-        .chat-container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            height: 60vh;
-            max-height: 600px;
+        .panel {
+            display: none;
+            width: 100%;
+            max-width: 820px
         }
 
-        .chat-messages {
-            flex: 1;
+        .panel.active {
+            display: block
+        }
+
+        #chat-box {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 16px;
+            height: 440px;
             overflow-y: auto;
-            padding: 1rem;
+            padding: 16px;
             display: flex;
             flex-direction: column;
-            gap: 1rem;
-            border-radius: 8px;
-            background: rgba(0,0,0,0.2);
-            margin-bottom: 1rem;
+            gap: 12px;
+            scroll-behavior: smooth
         }
 
         .message {
-            max-width: 80%;
-            padding: 0.75rem 1rem;
-            border-radius: 12px;
-            line-height: 1.5;
-            animation: fadeIn 0.3s ease-in-out;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+            max-width: 82%;
+            padding: 12px 16px;
+            border-radius: 14px;
+            font-size: .92rem;
+            line-height: 1.65;
+            white-space: pre-wrap
         }
 
         .message.bot {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(249, 115, 22, 0.12);
+            border: 1px solid rgba(249, 115, 22, 0.25);
             align-self: flex-start;
-            border-bottom-left-radius: 2px;
+            border-bottom-left-radius: 4px
         }
 
         .message.user {
-            background: var(--accent-color);
-            color: white;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.35);
             align-self: flex-end;
-            border-bottom-right-radius: 2px;
+            border-bottom-right-radius: 4px
         }
 
-        .message p { margin: 0 0 0.5rem 0; }
-        .message p:last-child { margin: 0; }
-
-        /* Typing Indicator */
-        .typing-indicator {
-            display: none;
-            align-items: center;
-            gap: 5px;
-            padding: 0.5rem 1rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 12px;
-            border-bottom-left-radius: 2px;
+        .message.error {
+            background: rgba(239, 68, 68, 0.12);
+            border: 1px solid rgba(239, 68, 68, 0.3);
             align-self: flex-start;
-            margin-top: 0.5rem;
+            color: #fca5a5
         }
 
-        .dot {
-            width: 8px;
-            height: 8px;
-            background: var(--text-muted);
-            border-radius: 50%;
-            animation: bounce 1.4s infinite ease-in-out both;
-        }
-
-        .dot:nth-child(1) { animation-delay: -0.32s; }
-        .dot:nth-child(2) { animation-delay: -0.16s; }
-
-        @keyframes bounce {
-            0%, 80%, 100% { transform: scale(0); }
-            40% { transform: scale(1); }
-        }
-
-        /* Input Area */
-        .input-area {
-            display: flex;
-            gap: 0.5rem;
-        }
-
-        input[type="text"] {
-            flex: 1;
-            padding: 1rem;
-            border-radius: 8px;
-            border: 1px solid var(--border-color);
-            background: rgba(0, 0, 0, 0.3);
-            color: var(--text-light);
-            font-size: 1rem;
-        }
-
-        input[type="text"]:focus {
-            outline: none;
-            border-color: var(--accent-color);
-        }
-
-        button.send-btn {
-            background: var(--accent-color);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            padding: 0 1.5rem;
-            font-size: 1rem;
-            cursor: pointer;
-            transition: background 0.3s;
-            font-weight: 600;
-        }
-
-        button.send-btn:hover {
-            background: var(--accent-hover);
-        }
-
-        /* Quick Topics */
         .quick-topics {
             display: flex;
             flex-wrap: wrap;
-            gap: 0.5rem;
-            margin-bottom: 1rem;
+            gap: 8px;
+            margin: 10px 0
         }
 
-        .topic-btn {
-            background: transparent;
-            border: 1px solid var(--accent-color);
-            color: var(--accent-color);
-            padding: 0.4rem 0.8rem;
+        .quick-btn {
+            padding: 7px 14px;
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.12);
             border-radius: 20px;
-            font-size: 0.85rem;
+            color: #ccc;
+            font-size: .82rem;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all .2s
         }
 
-        .topic-btn:hover {
-            background: var(--accent-color);
-            color: white;
+        .quick-btn:hover {
+            background: rgba(249, 115, 22, 0.25);
+            border-color: #f97316;
+            color: #fff
         }
 
-        /* Dummy content for other tabs */
-        .placeholder-content {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: var(--text-muted);
+        .input-row {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px
         }
 
-        @media (max-width: 600px) {
-            .message { max-width: 90%; }
-            .tabs { padding-bottom: 10px; }
-            .tab-btn { padding: 0.5rem 1rem; font-size: 0.9rem; }
+        #user-input {
+            flex: 1;
+            padding: 12px 16px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.06);
+            color: #fff;
+            font-size: .95rem;
+            outline: none;
+            transition: border .2s
+        }
+
+        #user-input:focus {
+            border-color: #f97316
+        }
+
+        #user-input::placeholder {
+            color: #666
+        }
+
+        #send-btn {
+            padding: 12px 24px;
+            background: #f97316;
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background .2s;
+            font-size: .95rem
+        }
+
+        #send-btn:hover {
+            background: #ea6b0f
+        }
+
+        #send-btn:disabled {
+            background: #444;
+            cursor: not-allowed
+        }
+
+        .typing {
+            display: flex;
+            gap: 5px;
+            align-items: center;
+            padding: 4px 8px
+        }
+
+        .typing span {
+            width: 8px;
+            height: 8px;
+            background: #f97316;
+            border-radius: 50%;
+            animation: bounce 1.2s infinite
+        }
+
+        .typing span:nth-child(2) {
+            animation-delay: .2s
+        }
+
+        .typing span:nth-child(3) {
+            animation-delay: .4s
+        }
+
+        @keyframes bounce {
+
+            0%,
+            80%,
+            100% {
+                transform: translateY(0);
+                opacity: .5
+            }
+
+            40% {
+                transform: translateY(-7px);
+                opacity: 1
+            }
+        }
+
+        .timeline {
+            padding: 8px 0
+        }
+
+        .tl-item {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 22px;
+            align-items: flex-start
+        }
+
+        .tl-dot {
+            min-width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #f97316, #ea6b0f);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1rem;
+            flex-shrink: 0;
+            box-shadow: 0 4px 15px rgba(249, 115, 22, 0.3)
+        }
+
+        .tl-content h3 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 4px
+        }
+
+        .tl-content p {
+            font-size: .88rem;
+            color: #9090b0;
+            line-height: 1.5
+        }
+
+        .tl-badge {
+            display: inline-block;
+            margin-top: 5px;
+            padding: 3px 12px;
+            background: rgba(249, 115, 22, 0.15);
+            border: 1px solid rgba(249, 115, 22, 0.3);
+            border-radius: 12px;
+            font-size: .76rem;
+            color: #f97316
+        }
+
+        .quiz-area {
+            padding: 8px 0
+        }
+
+        .score-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 14px;
+            font-size: .88rem;
+            color: #9090b0
+        }
+
+        .score-val {
+            color: #f97316;
+            font-weight: 700;
+            font-size: 1rem
+        }
+
+        .quiz-q {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 16px;
+            line-height: 1.5;
+            padding: 16px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 12px;
+            border-left: 3px solid #f97316
+        }
+
+        .quiz-opts {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin-bottom: 14px
+        }
+
+        .quiz-opt {
+            padding: 13px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: .92rem;
+            transition: all .2s;
+            text-align: left;
+            color: #ddd
+        }
+
+        .quiz-opt:hover:not(:disabled) {
+            background: rgba(249, 115, 22, 0.15);
+            border-color: #f97316;
+            color: #fff
+        }
+
+        .quiz-opt.correct {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: #22c55e;
+            color: #86efac
+        }
+
+        .quiz-opt.wrong {
+            background: rgba(239, 68, 68, 0.15);
+            border-color: #ef4444;
+            color: #fca5a5
+        }
+
+        #quiz-feedback {
+            min-height: 44px;
+            font-size: .9rem;
+            color: #9090b0;
+            padding: 8px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+            margin-bottom: 12px
+        }
+
+        #next-q-btn {
+            padding: 11px 28px;
+            background: #f97316;
+            border: none;
+            border-radius: 10px;
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            display: none;
+            font-size: .95rem
+        }
+
+        .glossary-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px
+        }
+
+        @media(max-width:550px) {
+            .glossary-grid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .gloss-card {
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+            padding: 14px 16px;
+            transition: border .2s
+        }
+
+        .gloss-card:hover {
+            border-color: rgba(249, 115, 22, 0.4)
+        }
+
+        .gloss-card h4 {
+            font-size: .95rem;
+            color: #f97316;
+            margin-bottom: 5px;
+            font-weight: 700
+        }
+
+        .gloss-card p {
+            font-size: .84rem;
+            color: #9090b0;
+            line-height: 1.5
+        }
+
+        footer {
+            margin-top: 24px;
+            font-size: .76rem;
+            color: #444;
+            text-align: center
+        }
+
+        .sr-only {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            overflow: hidden;
+            clip: rect(0, 0, 0, 0)
         }
     </style>
 </head>
-<body>
 
+<body>
     <header>
-        <h1>ElectionBot</h1>
-        <p style="margin: 5px 0 0; color: var(--text-muted); font-size: 0.9rem;">Your Guide to Indian Elections</p>
+        <h1>🗳️ Election<span>Bot</span></h1>
+        <p>Your friendly guide to understanding how elections work in India</p>
     </header>
 
-    <div class="container">
-        <div class="tabs">
-            <button class="tab-btn active" onclick="switchTab('chat')">Ask ElectionBot</button>
-            <button class="tab-btn" onclick="switchTab('timeline')">Timeline</button>
-            <button class="tab-btn" onclick="switchTab('quiz')">Quiz</button>
-            <button class="tab-btn" onclick="switchTab('glossary')">Glossary</button>
-        </div>
+    <div class="tabs" role="tablist">
+        <button class="tab-btn active" onclick="switchTab('chat',this)" role="tab">💬 Ask ElectionBot</button>
+        <button class="tab-btn" onclick="switchTab('timeline',this)" role="tab">📅 Timeline</button>
+        <button class="tab-btn" onclick="switchTab('quiz',this)" role="tab">🧠 Quiz</button>
+        <button class="tab-btn" onclick="switchTab('glossary',this)" role="tab">📖 Glossary</button>
+    </div>
 
-        <!-- Chat Tab -->
-        <div id="chat" class="tab-content active chat-container">
-            <div class="quick-topics">
-                <button class="topic-btn" onclick="sendQuickMessage('How do I register to vote?')">Voter Registration</button>
-                <button class="topic-btn" onclick="sendQuickMessage('How does an EVM work?')">EVMs Explained</button>
-                <button class="topic-btn" onclick="sendQuickMessage('What documents do I need to vote?')">Required Documents</button>
-                <button class="topic-btn" onclick="sendQuickMessage('What is the Model Code of Conduct?')">Model Code of Conduct</button>
-            </div>
-            
-            <div class="chat-messages" id="chat-messages">
-                <div class="message bot">
-                    <p>Namaste! I am ElectionBot. How can I help you understand the election process today?</p>
+    <!-- CHAT -->
+    <div class="panel active" id="panel-chat">
+        <div id="chat-box" role="log" aria-live="polite">
+            <div class="message bot">👋 Hi! I'm <strong>ElectionBot</strong>. Ask me anything about Indian elections —
+                voter registration, timelines, EVMs, counting, and more!</div>
+        </div>
+        <div class="quick-topics">
+            {% for topic in quick_topics %}
+            <button class="quick-btn" onclick="sendQuick('{{topic}}')">{{topic}}</button>
+            {% endfor %}
+        </div>
+        <div class="input-row">
+            <label for="user-input" class="sr-only">Ask about elections</label>
+            <input type="text" id="user-input" placeholder="Ask anything about elections..." maxlength="500"
+                onkeydown="if(event.key==='Enter')sendMessage()" />
+            <button id="send-btn" onclick="sendMessage()">Send</button>
+        </div>
+    </div>
+
+    <!-- TIMELINE -->
+    <div class="panel" id="panel-timeline">
+        <div class="timeline">
+            <div class="tl-item">
+                <div class="tl-dot">1</div>
+                <div class="tl-content">
+                    <h3>Election Announcement</h3>
+                    <p>Election Commission announces schedule, dates, and phases. Model Code of Conduct begins
+                        immediately.</p><span class="tl-badge">MCC begins</span>
                 </div>
             </div>
-            
-            <div class="typing-indicator" id="typing-indicator">
-                <div class="dot"></div>
-                <div class="dot"></div>
-                <div class="dot"></div>
+            <div class="tl-item">
+                <div class="tl-dot">2</div>
+                <div class="tl-content">
+                    <h3>Nomination Filing</h3>
+                    <p>Candidates file nomination papers. Scrutiny happens, withdrawals allowed within deadline.</p>
+                    <span class="tl-badge">~2 weeks</span>
+                </div>
             </div>
-
-            <form class="input-area" id="chat-form" onsubmit="handleChatSubmit(event)">
-                <input type="text" id="message-input" placeholder="Ask a question about elections..." required autocomplete="off">
-                <button type="submit" class="send-btn">Send</button>
-            </form>
-        </div>
-
-        <!-- Timeline Tab -->
-        <div id="timeline" class="tab-content">
-            <h2>Election Timeline Guide</h2>
-            <div class="placeholder-content">
-                <p>Timeline visualization coming soon.</p>
-                <p>Typically includes: Notification -> Nominations -> Scrutiny -> Withdrawal -> Polling -> Counting.</p>
+            <div class="tl-item">
+                <div class="tl-dot">3</div>
+                <div class="tl-content">
+                    <h3>Election Campaign</h3>
+                    <p>Parties campaign via rallies, ads, door-to-door. Campaigning stops 48 hours before voting.</p>
+                    <span class="tl-badge">3–5 weeks</span>
+                </div>
             </div>
-        </div>
-
-        <!-- Quiz Tab -->
-        <div id="quiz" class="tab-content">
-            <h2>Test Your Knowledge</h2>
-            <div class="placeholder-content">
-                <p>Interactive quiz module coming soon.</p>
+            <div class="tl-item">
+                <div class="tl-dot">4</div>
+                <div class="tl-content">
+                    <h3>Voting Day</h3>
+                    <p>Voters go to assigned booths, verify identity, press EVM button. VVPAT slip confirms vote.</p>
+                    <span class="tl-badge">Single day per phase</span>
+                </div>
             </div>
-        </div>
-
-        <!-- Glossary Tab -->
-        <div id="glossary" class="tab-content">
-            <h2>Election Glossary</h2>
-            <div class="placeholder-content">
-                <p>Dictionary of election terms coming soon.</p>
+            <div class="tl-item">
+                <div class="tl-dot">5</div>
+                <div class="tl-content">
+                    <h3>Vote Counting</h3>
+                    <p>EVMs opened at counting centres. Postal ballots counted first. Results declared round by round.
+                    </p><span class="tl-badge">1 day</span>
+                </div>
+            </div>
+            <div class="tl-item">
+                <div class="tl-dot">6</div>
+                <div class="tl-content">
+                    <h3>Government Formation</h3>
+                    <p>Winning candidates sworn in. Party/coalition with majority forms government and elects the
+                        leader.</p><span class="tl-badge">1–4 weeks after results</span>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- QUIZ -->
+    <div class="panel" id="panel-quiz">
+        <div class="quiz-area">
+            <div class="score-bar">Score: <span class="score-val"><span id="score">0</span> / <span
+                        id="total">0</span></span></div>
+            <div class="quiz-q" id="quiz-q"></div>
+            <div class="quiz-opts" id="quiz-opts"></div>
+            <div id="quiz-feedback"></div>
+            <button id="next-q-btn" onclick="loadQ()">Next Question →</button>
+        </div>
+    </div>
+
+    <!-- GLOSSARY -->
+    <div class="panel" id="panel-glossary">
+        <div class="glossary-grid">
+            <div class="gloss-card">
+                <h4>Constituency</h4>
+                <p>A geographic area whose voters elect one representative to parliament or assembly.</p>
+            </div>
+            <div class="gloss-card">
+                <h4>EVM</h4>
+                <p>Electronic Voting Machine — tamper-proof device used to cast and store votes digitally.</p>
+            </div>
+            <div class="gloss-card">
+                <h4>VVPAT</h4>
+                <p>Voter Verified Paper Audit Trail — prints a paper slip confirming your vote for 7 seconds.</p>
+            </div>
+            <div class="gloss-card">
+                <h4>Lok Sabha</h4>
+                <p>Lower house of India's parliament. 543 seats elected directly by citizens every 5 years.</p>
+            </div>
+            <div class="gloss-card">
+                <h4>Rajya Sabha</h4>
+                <p>Upper house. Members elected by state legislators, not directly by citizens.</p>
+            </div>
+            <div class="gloss-card">
+                <h4>Model Code of Conduct</h4>
+                <p>Rules governing parties and candidates from announcement until results are declared.</p>
+            </div>
+            <div class="gloss-card">
+                <h4>Affidavit</h4>
+                <p>Legal declaration candidates must file disclosing criminal records, assets and liabilities.</p>
+            </div>
+            <div class="gloss-card">
+                <h4>Exit Poll</h4>
+                <p>Survey of voters leaving booths, used to predict results before official counting begins.</p>
+            </div>
+            <div class="gloss-card">
+                <h4>Manifesto</h4>
+                <p>A political party's official document listing their promises and plans if elected to power.</p>
+            </div>
+            <div class="gloss-card">
+                <h4>Voter ID (EPIC)</h4>
+                <p>Electoral Photo Identity Card — issued by ECI to verify identity at polling booths.</p>
+            </div>
+        </div>
+    </div>
+
+    <footer>ElectionBot · Built for PromptWars Hackathon · Powered by Google Vertex AI · Neutral &amp; Educational
+    </footer>
+
     <script>
-        function switchTab(tabId) {
-            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            
-            document.getElementById(tabId).classList.add('active');
-            event.target.classList.add('active');
+        let chatHistory = [];
+
+        function switchTab(name, btn) {
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById('panel-' + name).classList.add('active');
+            btn.classList.add('active');
+            if (name === 'quiz' && !quizStarted) { loadQ(); quizStarted = true; }
         }
 
-        function appendMessage(text, sender) {
-            const messagesContainer = document.getElementById('chat-messages');
-            const messageDiv = document.createElement('div');
-            messageDiv.className = `message ${sender}`;
-            
-            // Basic markdown handling for paragraphs
-            const formattedText = text.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
-            messageDiv.innerHTML = `<p>${formattedText}</p>`;
-            
-            messagesContainer.appendChild(messageDiv);
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        function addMsg(text, role) {
+            const box = document.getElementById('chat-box');
+            const div = document.createElement('div');
+            div.className = 'message ' + role;
+            div.textContent = text;
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
+            return div;
         }
 
-        async function sendQuickMessage(msg) {
-            document.getElementById('message-input').value = msg;
-            await sendMessage(msg);
+        function showTyping() {
+            const box = document.getElementById('chat-box');
+            const div = document.createElement('div');
+            div.className = 'message bot';
+            div.id = 'typing';
+            div.innerHTML = '<div class="typing"><span></span><span></span><span></span></div>';
+            box.appendChild(div);
+            box.scrollTop = box.scrollHeight;
         }
 
-        async function handleChatSubmit(e) {
-            e.preventDefault();
-            const input = document.getElementById('message-input');
-            const msg = input.value.trim();
-            if (msg) {
-                input.value = '';
-                await sendMessage(msg);
-            }
-        }
-
-        async function sendMessage(message) {
-            appendMessage(message, 'user');
-            
-            const typingIndicator = document.getElementById('typing-indicator');
-            typingIndicator.style.display = 'flex';
-            
+        async function sendMessage() {
+            const inp = document.getElementById('user-input');
+            const btn = document.getElementById('send-btn');
+            const text = inp.value.trim();
+            if (!text) return;
+            addMsg(text, 'user');
+            chatHistory.push({ role: 'user', content: text });
+            inp.value = ''; btn.disabled = true;
+            showTyping();
             try {
-                const response = await fetch('/chat', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ message })
-                });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    appendMessage(data.response, 'bot');
+                const res = await fetch('/chat', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ message: text, history: chatHistory.slice(-6) }) });
+                const data = await res.json();
+                document.getElementById('typing')?.remove();
+                if (data.reply) {
+                    addMsg(data.reply, 'bot');
+                    chatHistory.push({ role: 'model', content: data.reply });
                 } else {
-                    appendMessage(`Error: ${data.error || 'Something went wrong.'}`, 'bot');
+                    addMsg('Sorry, something went wrong. Please try again.', 'error');
                 }
-            } catch (err) {
-                appendMessage('Failed to connect to the server. Please try again later.', 'bot');
+            } catch (e) {
+                document.getElementById('typing')?.remove();
+                addMsg('Network error. Please check your connection.', 'error');
             } finally {
-                typingIndicator.style.display = 'none';
+                btn.disabled = false;
+                inp.focus();
             }
+        }
+
+        function sendQuick(t) {
+            document.getElementById('user-input').value = t;
+            sendMessage();
+            switchTab('chat', document.querySelector('.tab-btn'));
+        }
+
+        // QUIZ
+        const qData = [
+            { q: "How many seats are there in the Lok Sabha?", opts: ["250", "543", "545", "552"], ans: 1, exp: "Lok Sabha has 543 elected seats." },
+            { q: "What does EVM stand for?", opts: ["Electronic Vote Monitor", "Electronic Voting Machine", "Election Verification Module", "Electronic Voter Map"], ans: 1, exp: "EVM = Electronic Voting Machine, used in all Indian elections since 2004." },
+            { q: "Minimum age to vote in India?", opts: ["16", "18", "21", "25"], ans: 1, exp: "Citizens aged 18 and above can register and vote." },
+            { q: "Who conducts elections in India?", opts: ["Parliament", "President of India", "Election Commission of India", "Supreme Court"], ans: 2, exp: "The Election Commission of India (ECI) is an independent constitutional body." },
+            { q: "What does VVPAT do?", opts: ["Counts votes automatically", "Prints a paper slip confirming your vote", "Sends your vote online", "Stores voter ID data"], ans: 1, exp: "VVPAT shows a paper slip of your vote for 7 seconds so you can verify." },
+            { q: "How often are Lok Sabha elections held?", opts: ["Every 3 years", "Every 4 years", "Every 5 years", "Every 6 years"], ans: 2, exp: "Lok Sabha elections are held every 5 years." },
+            { q: "What is Form 6 used for?", opts: ["Candidate nomination", "Voter registration", "Filing a complaint", "Requesting a recount"], ans: 1, exp: "Form 6 is submitted to register as a new voter on the Electoral Roll." },
+            { q: "What is the Model Code of Conduct?", opts: ["Law for voters", "Rules for candidates/parties during elections", "A coding competition", "Rules for counting votes"], ans: 1, exp: "MCC guidelines govern parties and candidates from announcement until results." }
+        ];
+
+        let qIdx = 0, score = 0, answered = false, quizStarted = false;
+        const shuffled = [...qData].sort(() => Math.random() - .5);
+
+        function loadQ() {
+            if (qIdx >= shuffled.length) qIdx = 0;
+            const q = shuffled[qIdx];
+            answered = false;
+            document.getElementById('quiz-q').textContent = `Q${qIdx + 1}. ${q.q}`;
+            document.getElementById('quiz-feedback').textContent = '';
+            document.getElementById('next-q-btn').style.display = 'none';
+            const opts = document.getElementById('quiz-opts');
+            opts.innerHTML = '';
+            q.opts.forEach((o, i) => {
+                const b = document.createElement('button');
+                b.className = 'quiz-opt';
+                b.textContent = o;
+                b.onclick = () => checkAns(i, q.ans, q.exp);
+                opts.appendChild(b);
+            });
+        }
+
+        function checkAns(chosen, correct, exp) {
+            if (answered) return;
+            answered = true;
+            const btns = document.querySelectorAll('.quiz-opt');
+            btns[chosen].classList.add(chosen === correct ? 'correct' : 'wrong');
+            btns[correct].classList.add('correct');
+            btns.forEach(b => b.disabled = true);
+            if (chosen === correct) score++;
+            document.getElementById('score').textContent = score;
+            document.getElementById('total').textContent = qIdx + 1;
+            document.getElementById('quiz-feedback').textContent = exp;
+            document.getElementById('next-q-btn').style.display = 'inline-block';
+            qIdx++;
         }
     </script>
 </body>
+
 </html>
