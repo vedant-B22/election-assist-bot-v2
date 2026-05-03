@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ElectionBot - India Election Assistant</title>
+    <style>
+        :root {
+            --bg-gradient-start: #000d1a;
+            --bg-gradient-end: #0a0a2e;
+            --accent-color: #f97316;
+            --accent-hover: #ea580c;
+            --text-light: #f3f4f6;
+            --text-muted: #9ca3af;
+            --card-bg: rgba(15, 23, 42, 0.7);
+            --border-color: rgba(255, 255, 255, 0.1);
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start), var(--bg-gradient-end));
+            color: var(--text-light);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        header {
+            padding: 1.5rem;
+            text-align: center;
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.2);
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        /* Tabs */
+        .tabs {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .tab-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .tab-btn.active {
+            background: var(--accent-color);
+            border-color: var(--accent-color);
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            flex: 1;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .tab-content.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Chat Specific */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 60vh;
+            max-height: 600px;
+        }
+
+        .chat-messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            border-radius: 8px;
+            background: rgba(0,0,0,0.2);
+            margin-bottom: 1rem;
+        }
+
+        .message {
+            max-width: 80%;
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            line-height: 1.5;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .message.bot {
+            background: rgba(255, 255, 255, 0.05);
+            align-self: flex-start;
+            border-bottom-left-radius: 2px;
+        }
+
+        .message.user {
+            background: var(--accent-color);
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 2px;
+        }
+
+        .message p { margin: 0 0 0.5rem 0; }
+        .message p:last-child { margin: 0; }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 12px;
+            border-bottom-left-radius: 2px;
+            align-self: flex-start;
+            margin-top: 0.5rem;
+        }
+
+        .dot {
+            width: 8px;
+            height: 8px;
+            background: var(--text-muted);
+            border-radius: 50%;
+            animation: bounce 1.4s infinite ease-in-out both;
+        }
+
+        .dot:nth-child(1) { animation-delay: -0.32s; }
+        .dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes bounce {
+            0%, 80%, 100% { transform: scale(0); }
+            40% { transform: scale(1); }
+        }
+
+        /* Input Area */
+        .input-area {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        input[type="text"] {
+            flex: 1;
+            padding: 1rem;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: rgba(0, 0, 0, 0.3);
+            color: var(--text-light);
+            font-size: 1rem;
+        }
+
+        input[type="text"]:focus {
+            outline: none;
+            border-color: var(--accent-color);
+        }
+
+        button.send-btn {
+            background: var(--accent-color);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 0 1.5rem;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: background 0.3s;
+            font-weight: 600;
+        }
+
+        button.send-btn:hover {
+            background: var(--accent-hover);
+        }
+
+        /* Quick Topics */
+        .quick-topics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-bottom: 1rem;
+        }
+
+        .topic-btn {
+            background: transparent;
+            border: 1px solid var(--accent-color);
+            color: var(--accent-color);
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .topic-btn:hover {
+            background: var(--accent-color);
+            color: white;
+        }
+
+        /* Dummy content for other tabs */
+        .placeholder-content {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-muted);
+        }
+
+        @media (max-width: 600px) {
+            .message { max-width: 90%; }
+            .tabs { padding-bottom: 10px; }
+            .tab-btn { padding: 0.5rem 1rem; font-size: 0.9rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>ElectionBot</h1>
+        <p style="margin: 5px 0 0; color: var(--text-muted); font-size: 0.9rem;">Your Guide to Indian Elections</p>
+    </header>
+
+    <div class="container">
+        <div class="tabs">
+            <button class="tab-btn active" onclick="switchTab('chat')">Ask ElectionBot</button>
+            <button class="tab-btn" onclick="switchTab('timeline')">Timeline</button>
+            <button class="tab-btn" onclick="switchTab('quiz')">Quiz</button>
+            <button class="tab-btn" onclick="switchTab('glossary')">Glossary</button>
+        </div>
+
+        <!-- Chat Tab -->
+        <div id="chat" class="tab-content active chat-container">
+            <div class="quick-topics">
+                <button class="topic-btn" onclick="sendQuickMessage('How do I register to vote?')">Voter Registration</button>
+                <button class="topic-btn" onclick="sendQuickMessage('How does an EVM work?')">EVMs Explained</button>
+                <button class="topic-btn" onclick="sendQuickMessage('What documents do I need to vote?')">Required Documents</button>
+                <button class="topic-btn" onclick="sendQuickMessage('What is the Model Code of Conduct?')">Model Code of Conduct</button>
+            </div>
+            
+            <div class="chat-messages" id="chat-messages">
+                <div class="message bot">
+                    <p>Namaste! I am ElectionBot. How can I help you understand the election process today?</p>
+                </div>
+            </div>
+            
+            <div class="typing-indicator" id="typing-indicator">
+                <div class="dot"></div>
+                <div class="dot"></div>
+                <div class="dot"></div>
+            </div>
+
+            <form class="input-area" id="chat-form" onsubmit="handleChatSubmit(event)">
+                <input type="text" id="message-input" placeholder="Ask a question about elections..." required autocomplete="off">
+                <button type="submit" class="send-btn">Send</button>
+            </form>
+        </div>
+
+        <!-- Timeline Tab -->
+        <div id="timeline" class="tab-content">
+            <h2>Election Timeline Guide</h2>
+            <div class="placeholder-content">
+                <p>Timeline visualization coming soon.</p>
+                <p>Typically includes: Notification -> Nominations -> Scrutiny -> Withdrawal -> Polling -> Counting.</p>
+            </div>
+        </div>
+
+        <!-- Quiz Tab -->
+        <div id="quiz" class="tab-content">
+            <h2>Test Your Knowledge</h2>
+            <div class="placeholder-content">
+                <p>Interactive quiz module coming soon.</p>
+            </div>
+        </div>
+
+        <!-- Glossary Tab -->
+        <div id="glossary" class="tab-content">
+            <h2>Election Glossary</h2>
+            <div class="placeholder-content">
+                <p>Dictionary of election terms coming soon.</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function appendMessage(text, sender) {
+            const messagesContainer = document.getElementById('chat-messages');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${sender}`;
+            
+            // Basic markdown handling for paragraphs
+            const formattedText = text.replace(/\n\n/g, '</p><p>').replace(/\n/g, '<br>');
+            messageDiv.innerHTML = `<p>${formattedText}</p>`;
+            
+            messagesContainer.appendChild(messageDiv);
+            messagesContainer.scrollTop = messagesContainer.scrollHeight;
+        }
+
+        async function sendQuickMessage(msg) {
+            document.getElementById('message-input').value = msg;
+            await sendMessage(msg);
+        }
+
+        async function handleChatSubmit(e) {
+            e.preventDefault();
+            const input = document.getElementById('message-input');
+            const msg = input.value.trim();
+            if (msg) {
+                input.value = '';
+                await sendMessage(msg);
+            }
+        }
+
+        async function sendMessage(message) {
+            appendMessage(message, 'user');
+            
+            const typingIndicator = document.getElementById('typing-indicator');
+            typingIndicator.style.display = 'flex';
+            
+            try {
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    appendMessage(data.response, 'bot');
+                } else {
+                    appendMessage(`Error: ${data.error || 'Something went wrong.'}`, 'bot');
+                }
+            } catch (err) {
+                appendMessage('Failed to connect to the server. Please try again later.', 'bot');
+            } finally {
+                typingIndicator.style.display = 'none';
+            }
+        }
+    </script>
+</body>
+</html>
