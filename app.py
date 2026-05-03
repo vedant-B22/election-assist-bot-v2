@@ -5,7 +5,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 app = Flask(__name__)
-PROJECT_ID = os.environ.get("PROJECT_ID", "election-assist-bot")
+PROJECT_ID = os.environ.get("PROJECT_ID", "265912819375")
 LOCATION = os.environ.get("LOCATION", "us-central1")
 
 SYSTEM_PROMPT = """You are ElectionBot, a friendly and neutral election education assistant for India.
@@ -68,7 +68,7 @@ def chat():
         if not token:
             return jsonify({"error": "Could not get access token"}), 500
 
-        url = f"https://{LOCATION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/google/models/gemini-2.0-flash-001:generateContent"
+        url = f"https://{LOCATION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/google/models/gemini-2.0-flash:generateContent"
 
         headers = {
             "Authorization": f"Bearer {token}",
@@ -89,16 +89,15 @@ def chat():
         }
 
         resp = requests.post(url, headers=headers, json=payload, timeout=30)
-        
-        # Fallback logic if the model is not found or rate limited
+
         if resp.status_code in (404, 429):
-            print(f"Model gemini-2.0-flash-001 failed with {resp.status_code}, trying fallback to gemini-1.5-flash-002")
-            fallback_url = f"https://{LOCATION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/google/models/gemini-1.5-flash-002:generateContent"
+            print(f"Primary model failed with {resp.status_code}, trying fallback gemini-1.5-flash")
+            fallback_url = f"https://{LOCATION}-aiplatform.googleapis.com/v1/projects/{PROJECT_ID}/locations/{LOCATION}/publishers/google/models/gemini-1.5-flash:generateContent"
             resp = requests.post(fallback_url, headers=headers, json=payload, timeout=30)
-            
+
         if not resp.ok:
             print(f"Vertex AI API Error: {resp.status_code} - {resp.text}")
-            
+
         resp.raise_for_status()
         result = resp.json()
         reply = result["candidates"][0]["content"]["parts"][0]["text"]
